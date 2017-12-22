@@ -97,16 +97,34 @@ ggmap(cc_map, base_layer = ggplot(n_data, aes(lon, lat))) +
 ```
 
 
-Exploring relationship between, Lot Area and Sale Price.
+Exploring relationship between, Living Area and Sale Price.
 
 ```{r}
 options(scipen=999)
 ggplot(ds, aes(x=GrLivArea,y=SalePrice,color = Neighborhood))+
-  geom_point()+geom_line()
+  geom_point()
 
+```
+
+as we can see two major outliers in Edwards Neighbour hood, lets explore them more.
+
+```{r}
+filter(ds,Neighborhood == "Edwards", GrLivArea > 4000) %>%
+  select(Id,SalePrice,Neighborhood, YearBuilt,YrSold)
 
 
 ```
 
+Let's Examine Edwards-Neighborhood a bit more and identify our outliers
+
+```{r}
+
+eds<-filter(ds,Neighborhood == "Edwards") %>%
+  select(SalePrice,Neighborhood,GrLivArea)
+print(eds)
+ggplot(eds,aes(x=GrLivArea,y=SalePrice,color=Neighborhood))+
+  geom_point()
+
+```
 
 
