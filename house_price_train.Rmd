@@ -1,0 +1,112 @@
+---
+title: "hp_rent"
+author: "sachin kalra"
+date: "20 December 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+Data has already been prepared for exploration after handling missing values.
+but here we start with original data set.
+
+#Jist of the data set
+```{r}
+list.files()
+ds<-read.csv("house_price_train.csv",stringsAsFactors = F)
+ds<-tbl_df(ds)
+dim(ds)
+ds
+```
+
+# Starting with Our Target Variable - SalePrice
+```{r}
+summary(ds$SalePrice)
+library(ggplot2)
+options(scipen=1)
+ggplot(ds,mapping=aes(x=SalePrice))+
+  geom_histogram(bins = 35,aes(fill= ..count..))+
+  scale_fill_gradient("Count", low="green", high="red")
+
+
+```
+
+# As we can see data is skewed lets try with logarithmic transformation of Sale Price to normalize it.
+
+
+```{r}
+ggplot(ds,mapping=aes(x=log(SalePrice)))+
+  geom_histogram(bins = 35,aes(fill= ..count..))+
+  scale_fill_gradient("Count", low="green", high="red")
+```
+
+thus logarithmic transformation of SalePrice normalized it.
+
+Lets explore relationship between SalePrice and Location/Neighborhood
+
+```{r}
+ggplot(ds ,mapping = aes(x= Neighborhood, y = SalePrice,color = Neighborhood ))+
+   theme(axis.text.x=element_text(angle=30))+geom_point()+geom_boxplot()
+```
+
+
+
+Let's compare Neighborhoods by mean SalePrice
+
+```{r}
+library(dplyr)
+msp<-group_by(ds,Neighborhood) %>%
+  summarise(M_Sale_Price=mean(SalePrice))
+print(msp)
+
+ggplot(msp) + 
+  geom_bar(aes(Neighborhood, M_Sale_Price, fill = Neighborhood),position = "dodge", stat = "summary", fun.y = "mean")+
+  theme(axis.text.x = element_text(angle = 30))
+  
+  
+
+```
+
+
+
+
+Now, We already had a look at Mean sale prices of different neighbourhoods, lets go a level down and analyze it on the geographical map.
+```{r}
+#loading lon/lat gathered data
+n_data<-read.csv("n_data_lon_lat.csv")
+n_data<-read.csv("n_data_lon_lat.csv")
+colnames(n_data)<-c("lon","lat","name")
+n_data$mean_sp<-msp$M_Sale_Price
+#spatial analysis in r data data()
+cc<-c(lat = 42.034722, lon = -93.62 )
+cc_map<-get_map(cc,zoom = 12,source = "stamen",maptype = "toner-background" )
+
+
+ggmap(cc_map) +
+  geom_point(aes(lon, lat, color = name), data = n_data)
+colnames(n_data)<-c("lon","lat","name")
+
+ggmap(cc_map, base_layer = ggplot(n_data, aes(lon, lat))) +
+  geom_point(aes(color = mean_sp))
+
+
+
+```
+
+
+Exploring relationship between, Lot Area and Sale Price.
+
+```{r}
+options(scipen=999)
+ggplot(ds, aes(x=GrLivArea,y=SalePrice,color = Neighborhood))+
+  geom_point()+geom_line()
+
+
+
+```
+
+
+
